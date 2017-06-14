@@ -199,9 +199,9 @@ public:
     // points on the line).
     //
     line_string lineSlice(point start, point stop, const line_string& line) {
-        constexpr auto getPoint = [](auto tuple) { return std::get<0>(tuple); };
-        constexpr auto getIndex = [](auto tuple) { return std::get<1>(tuple); };
-        constexpr auto getT     = [](auto tuple) { return std::get<2>(tuple); };
+        auto getPoint = [](auto tuple) { return std::get<0>(tuple); };
+        auto getIndex = [](auto tuple) { return std::get<1>(tuple); };
+        auto getT     = [](auto tuple) { return std::get<2>(tuple); };
 
         auto p1 = _pointOnLine(line, start);
         auto p2 = _pointOnLine(line, stop);
