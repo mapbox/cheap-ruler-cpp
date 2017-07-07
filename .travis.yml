@@ -3,6 +3,14 @@ language: generic
 matrix:
   include:
     - os: linux
+      env: CXX=g++-4.9
+      sudo: required
+      dist: trusty
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ 'g++-4.9', 'cmake', 'cmake-data' ]
+    - os: linux
       env: CXX=g++-5
       sudo: required
       dist: trusty

@@ -8,7 +8,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wpedantic")
 
-mason_use(geometry VERSION 0.9.0 HEADER_ONLY)
+mason_use(geometry VERSION 0.9.2 HEADER_ONLY)
 mason_use(gtest VERSION 1.8.0)
 mason_use(variant VERSION 1.1.4 HEADER_ONLY)
 
