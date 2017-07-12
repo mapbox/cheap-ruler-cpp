@@ -103,13 +103,13 @@ public:
             return 0.;
         }
 
-        auto bearing = std::atan2(-dy, dx) * 180. / M_PI + 90.;
+        auto value = std::atan2(-dy, dx) * 180. / M_PI + 90.;
 
-        if (bearing > 180.) {
-            bearing -= 360.;
+        if (value > 180.) {
+            value -= 360.;
         }
 
-        return bearing;
+        return value;
     }
 
     //
