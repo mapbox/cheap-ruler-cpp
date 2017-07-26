@@ -103,7 +103,7 @@ public:
             return 0.;
         }
 
-        auto value = std::atan2(-dy, dx) * 180. / M_PI + 90.;
+        auto value = std::atan2(dx, dy) * 180. / M_PI;
 
         if (value > 180.) {
             value -= 360.;
