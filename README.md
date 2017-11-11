@@ -4,12 +4,13 @@ Port to C++ of [Cheap Ruler](https://github.com/mapbox/cheap-ruler), a collectio
 
 # Usage
 
-Using namespace `cr`
 ```
+#include <mapbox/cheap_ruler.hpp>
+
 namespace cr = mapbox::cheap_ruler;
 ```
 
-All `point`, `line_string`, `polygon`, and `box` references are mapbox::geometry data structures.
+All `point`, `line_string`, `polygon`, and `box` references are [mapbox::geometry](https://github.com/mapbox/geometry.hpp) data structures.
 
 ## Create a ruler object
 
@@ -48,8 +49,10 @@ auto ruler = cr::CheapRuler::fromTile(11041, 15);
 Given two points of the form [x = longitude, y = latitude], returns the distance (`double`).
 
 ```cpp
+cr::point point_a{-96.9148, 32.8351};
+cr::point point_b{-96.9146, 32.8386};
 auto distance = ruler.distance(point_a, point_b);
-std::clog << distance; // 4.503
+std::clog << distance; // 0.388595
 ```
 
 **bearing(point a, point b)**
@@ -134,6 +137,22 @@ Given a bounding box, returns the box buffered by a given distance.
 Returns true if the given point is inside in the given bounding box, otherwise false.
 
 ```cpp
+```
+
+# Develop
+
+```shell
+# create targets
+cmake .
+
+# build
+make
+
+# test
+./cheap_ruler
+
+# or just do it all in one!
+cmake . && make && ./cheap_ruler
 ```
 
 
