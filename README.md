@@ -16,9 +16,9 @@ All `point`, `line_string`, `polygon`, and `box` references are [mapbox::geometr
 
 ## Create a ruler object
 
-**CheapRuler(double latitude, Unit unit)**
+#### `CheapRuler(double latitude, Unit unit)`
 
-Creates a ruler object that will approximate measurements around the given latitude with an optional distance unit.
+Creates a ruler object that will approximate measurements around the given latitude with an optional distance unit. Once created, the ruler object has access to the [methods](#methods) below.
 
 ```cpp
 auto ruler = cr::CheapRuler(32.8351);
