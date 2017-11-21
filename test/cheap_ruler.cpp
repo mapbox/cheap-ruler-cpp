@@ -13,7 +13,10 @@ protected:
 };
 
 void assertErr(double expected, double actual, double maxError) {
-    double error = std::abs((actual - expected) / expected);
+    // Add a negligible fraction to make sure we
+    // don't divide by zero.
+    double error = std::abs((actual - expected) /
+            (expected == 0. ? expected + 0.000001 : expected));
 
     if (error > maxError) {
         FAIL() << "expected is " << expected << " but got " << actual;
