@@ -120,14 +120,16 @@ std::clog << area; // 259.581
 
 #### `pointOnLine(const line_string& line, point p)`
 
-Returns a pair of the form `std::pair<point, unsigned>` where point is closest point on the line from the given point and index is the start index of the segment with the closest point.
+Returns a tuple of the form `std::pair<point, unsigned>` where point is closest point on the line from the given point, index is the start index of the segment with the closest point, and t is a parameter from 0 to 1 that indicates where the closest point is on that segment.
 
 ```cpp
 cr::line_string line{{ -96.9, 32.8 }, { -96.8, 32.8 }, { -96.2, 32.3 }};
 cr::point point{-96.9, 32.79};
 auto pol = ruler.pointOnLine(line, point);
-std::clog << pol.first.x << ", " << pol.first.y; // -96.9, 32.8 (point)
-std::clog << pol.second; // 0 (index)
+auto point = std::get<0>(pol);
+std::clog << point.x << ", " << point.y; // -96.9, 32.8 (point)
+std::clog << std::get<1>(pol); // 0 (index)
+std::clog << std::get<2>(pol); // 0. (t)
 ```
 
 #### `lineSlice(point start, point stop, const line_string& line)`

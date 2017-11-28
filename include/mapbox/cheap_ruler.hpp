@@ -185,13 +185,50 @@ public:
     }
 
     //
-    // Returns a pair of the form <point, index> where point is closest point on the line from
-    // the given point and index is the start index of the segment with the closest point.
+    // Returns a tuple of the form <point, index, t> where point is closest point on the line
+    // from the given point, index is the start index of the segment with the closest point,
+    // and t is a parameter from 0 to 1 that indicates where the closest point is on that segment.
     //
-    std::pair<point, unsigned> pointOnLine(const line_string& line, point p) {
-        auto result = _pointOnLine(line, p);
+    std::tuple<point, unsigned, double> pointOnLine(const line_string& line, point p) {
+        double minDist = std::numeric_limits<double>::infinity();
+        double minX = 0., minY = 0., minI = 0., minT = 0.;
 
-        return std::make_pair(std::get<0>(result), std::get<1>(result));
+        for (unsigned i = 0; i < line.size() - 1; ++i) {
+            auto t = 0.;
+            auto x = line[i].x;
+            auto y = line[i].y;
+            auto dx = (line[i + 1].x - x) * kx;
+            auto dy = (line[i + 1].y - y) * ky;
+
+            if (dx != 0. || dy != 0.) {
+                t = ((p.x - x) * kx * dx + (p.y - y) * ky * dy) / (dx * dx + dy * dy);
+
+                if (t > 1) {
+                    x = line[i + 1].x;
+                    y = line[i + 1].y;
+
+                } else if (t > 0) {
+                    x += (dx / kx) * t;
+                    y += (dy / ky) * t;
+                }
+            }
+
+            dx = (p.x - x) * kx;
+            dy = (p.y - y) * ky;
+
+            auto sqDist = dx * dx + dy * dy;
+
+            if (sqDist < minDist) {
+                minDist = sqDist;
+                minX = x;
+                minY = y;
+                minI = i;
+                minT = t;
+            }
+        }
+
+        return std::make_tuple(
+                point(minX, minY), minI, ::fmax(0., ::fmin(1., minT)));
     }
 
     //
@@ -203,8 +240,8 @@ public:
         auto getIndex = [](auto tuple) { return std::get<1>(tuple); };
         auto getT     = [](auto tuple) { return std::get<2>(tuple); };
 
-        auto p1 = _pointOnLine(line, start);
-        auto p2 = _pointOnLine(line, stop);
+        auto p1 = pointOnLine(line, start);
+        auto p2 = pointOnLine(line, stop);
 
         if (getIndex(p1) > getIndex(p2) || (getIndex(p1) == getIndex(p2) && getT(p1) > getT(p2))) {
             auto tmp = p1;
@@ -309,47 +346,6 @@ public:
     }
 
 private:
-    std::tuple<point, unsigned, double> _pointOnLine(const line_string& line, point p) {
-        double minDist = std::numeric_limits<double>::infinity();
-        double minX = 0., minY = 0., minI = 0., minT = 0.;
-
-        for (unsigned i = 0; i < line.size() - 1; ++i) {
-            auto t = 0.;
-            auto x = line[i].x;
-            auto y = line[i].y;
-            auto dx = (line[i + 1].x - x) * kx;
-            auto dy = (line[i + 1].y - y) * ky;
-
-            if (dx != 0. || dy != 0.) {
-                t = ((p.x - x) * kx * dx + (p.y - y) * ky * dy) / (dx * dx + dy * dy);
-
-                if (t > 1) {
-                    x = line[i + 1].x;
-                    y = line[i + 1].y;
-
-                } else if (t > 0) {
-                    x += (dx / kx) * t;
-                    y += (dy / ky) * t;
-                }
-            }
-
-            dx = (p.x - x) * kx;
-            dy = (p.y - y) * ky;
-
-            auto sqDist = dx * dx + dy * dy;
-
-            if (sqDist < minDist) {
-                minDist = sqDist;
-                minX = x;
-                minY = y;
-                minI = i;
-                minT = t;
-            }
-        }
-
-        return std::make_tuple(point(minX, minY), minI, minT);
-    }
-
     double ky;
     double kx;
 };
