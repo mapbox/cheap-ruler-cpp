@@ -108,9 +108,14 @@ TEST_F(CheapRulerTest, alongWithDistGreaterThanLength) {
 TEST_F(CheapRulerTest, pointOnLine) {
     // not Turf comparison because pointOnLine is bugged https://github.com/Turfjs/turf/issues/344
     cr::line_string line = {{ -77.031669, 38.878605 }, { -77.029609, 38.881946 }};
-    cr::point p = ruler.pointOnLine(line, { -77.034076, 38.882017 }).first;
+    auto result = ruler.pointOnLine(line, { -77.034076, 38.882017 });
 
-    ASSERT_EQ(p, cr::point(-77.03052697027461, 38.880457194811896));
+    ASSERT_EQ(std::get<0>(result), cr::point(-77.03052697027461, 38.880457194811896)); // point
+    ASSERT_EQ(std::get<1>(result), 0u); // index
+    ASSERT_EQ(std::get<2>(result), 0.5543833618360235); // t
+
+    ASSERT_EQ(std::get<2>(ruler.pointOnLine(line, { -80., 38. })), 0.) << "t is not less than 0";
+    ASSERT_EQ(std::get<2>(ruler.pointOnLine(line, { -75., 38. })), 1.) << "t is not bigger than 1";
 }
 
 TEST_F(CheapRulerTest, lineSlice) {
