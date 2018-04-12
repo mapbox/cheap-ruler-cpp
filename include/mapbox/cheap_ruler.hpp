@@ -116,9 +116,9 @@ public:
     // Returns a new point given distance and bearing from the starting point.
     //
     point destination(point origin, double dist, double bearing_) {
-        auto a = (90. - bearing_) * M_PI / 180.;
+        auto a = bearing_ * M_PI / 180.;
 
-        return offset(origin, std::cos(a) * dist, std::sin(a) * dist);
+        return offset(origin, std::sin(a) * dist, std::cos(a) * dist);
     }
 
     //
