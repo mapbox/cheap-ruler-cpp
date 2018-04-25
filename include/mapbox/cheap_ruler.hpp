@@ -77,7 +77,7 @@ public:
 
     static CheapRuler fromTile(uint32_t y, uint32_t z) {
         double n = M_PI * (1. - 2. * (y + 0.5) / std::pow(2., z));
-        double latitude = std::atan(0.5 * (std::exp(n) - std::exp(-n))) * 180. / M_PI;
+        double latitude = std::atan(std::sinh(n)) * 180. / M_PI;
 
         return CheapRuler(latitude);
     }
@@ -86,10 +86,10 @@ public:
     // Given two points of the form [x = longitude, y = latitude], returns the distance.
     //
     double distance(point a, point b) {
-        auto dx = (a.x - b.x) * kx;
+        auto dx = std::remainder(a.x - b.x, 180) * kx;
         auto dy = (a.y - b.y) * ky;
 
-        return std::sqrt(dx * dx + dy * dy);
+        return std::hypot(dx, dy);
     }
 
     //
