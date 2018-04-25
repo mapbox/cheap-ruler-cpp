@@ -64,14 +64,14 @@ public:
         }
 
         // Here are the parameters (major radius in km and flattening) for the
-        // Clarke 1866 which were used to obtain the expansion parameters used
-        // in the FCC formula.
+        // Clarke 1866 ellipsoid which were used to obtain the expansion
+        // parameters used in the FCC formula.
         // These should be switched to the WGS84 parameters soon!
         // double a = 6378.137, f = 1/298.257223563;
         double a = 6378.2064, f = (a - 6356.5838) / a;
 
         auto mul = m * (M_PI / 180) * a;
-        auto cos = std::cos(latitude * M_PI / 180.);
+        auto cos = std::cos(latitude * M_PI / 180);
         auto den2 = (1-f) * (1-f) + f * (2-f) * cos * cos;
         auto den = sqrt(den2);
 
@@ -81,10 +81,10 @@ public:
         //   ky = pi/180 * M
         // where phi = latitude and from
         // https://en.wikipedia.org/wiki/Earth_radius#Principal_sections
-        //   M = meridional radius of curvature
-        //     = (a*b)^2/((a*cos(phi))^2 + (b*sin(phi))^2)^(3/2)
         //   N = normal radius of curvature
         //     = a^2/((a*cos(phi))^2 + (b*sin(phi))^2)^(1/2)
+        //   M = meridional radius of curvature
+        //     = (a*b)^2/((a*cos(phi))^2 + (b*sin(phi))^2)^(3/2)
         kx = mul * cos / den;
         ky = mul * (1-f) * (1-f) / (den * den2);
     }
