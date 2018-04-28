@@ -1,5 +1,6 @@
 #include <mapbox/cheap_ruler.hpp>
 #include <gtest/gtest.h>
+#include <random>
 
 #include "fixtures/lines.hpp"
 #include "fixtures/turf.hpp"
@@ -191,6 +192,43 @@ TEST_F(CheapRulerTest, fromTile) {
     cr::point p2(30.51, 50.51);
 
     assertErr(ruler1.distance(p1, p2), ruler2.distance(p1, p2), 2e-5);
+}
+
+TEST_F(CheapRulerTest, longitudeWrap) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::bernoulli_distribution d(0.5); // true with prob 0.5
+
+    auto r = cr::CheapRuler(50.5);
+    cr::polygon poly(1);
+    auto& ring = poly[0];
+    cr::line_string line;
+    cr::point origin(0, 50.5);  // Greenwich
+    auto rad = 1000.0;
+    // construct a regular dodecagon
+    for (int i = -180; i <= 180; i += 30) {
+      auto p = r.destination(origin, rad, i);
+      // shift randomly east/west to the international date line
+      p.x += d(gen) ? 180 : -180;
+      ring.push_back(p);
+      line.push_back(p);
+    }
+    auto p = r.lineDistance(line);
+    auto a = r.area(poly);
+    // cheap_ruler does planar calculations, so the perimeter and area of a
+    // planar regular dodecagon with circumradius rad are used in these checks.
+    // For the record, the results for rad = 1000 km are:
+    //        perimeter    area
+    // planar 6211.657082  3000000
+    // WGS84  6187.959236  2996317.6328
+    // error  0.38%        0.12%
+    assertErr(12 * rad / sqrt(2 + sqrt(3.0)), p, 1e-12);
+    assertErr(3 * rad * rad, a, 1e-12);
+    for (int j = 1; j < (int)line.size(); ++j) {
+      auto azi = r.bearing(line[j-1], line[j]);
+      // offset expect and actual by 1 to make err criterion absolute
+      assertErr(1, std::remainder(270 - 15 + 30*j - azi, 360) + 1, 1e-12);
+      }
 }
 
 int main(int argc, char **argv) {
