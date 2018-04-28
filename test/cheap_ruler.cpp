@@ -128,9 +128,10 @@ TEST_F(CheapRulerTest, pointOnLine) {
     cr::line_string line = {{ -77.031669, 38.878605 }, { -77.029609, 38.881946 }};
     auto result = ruler.pointOnLine(line, { -77.034076, 38.882017 });
 
-    ASSERT_EQ(std::get<0>(result), cr::point(-77.03052697027461, 38.880457194811896)); // point
+    assertErr(std::get<0>(result).x, -77.03052697027461, 1e-6);
+    assertErr(std::get<0>(result).y, 38.880457194811896, 1e-6);
     ASSERT_EQ(std::get<1>(result), 0u); // index
-    ASSERT_EQ(std::get<2>(result), 0.5543833618360235); // t
+    assertErr(std::get<2>(result), 0.5543833618360235, 1e-6); // t
 
     ASSERT_EQ(std::get<2>(ruler.pointOnLine(line, { -80., 38. })), 0.) << "t is not less than 0";
     ASSERT_EQ(std::get<2>(ruler.pointOnLine(line, { -75., 38. })), 1.) << "t is not bigger than 1";
@@ -179,7 +180,7 @@ TEST_F(CheapRulerTest, lineSliceReverse) {
     auto stop = ruler.along(line, dist * 0.3);
     auto actual = ruler.lineDistance(ruler.lineSlice(start, stop, line));
 
-    ASSERT_EQ(actual, 0.018676802802910702);
+    assertErr(actual, 0.018676802802910702, 1e-6);
 }
 
 TEST_F(CheapRulerTest, bufferPoint) {
@@ -198,7 +199,10 @@ TEST_F(CheapRulerTest, bufferBBox) {
     cr::box bbox({ 30, 38 }, { 40, 39 });
     cr::box bbox2 = ruler.bufferBBox(bbox, 1);
 
-    ASSERT_EQ(bbox2, cr::box({ 29.989319515875376, 37.99098271225711 }, { 40.01068048412462, 39.00901728774289 }));
+    assertErr(bbox2.min.x,  29.989319515875376, 1e-6);
+    assertErr(bbox2.min.y,  37.99098271225711, 1e-6);
+    assertErr(bbox2.max.x,  40.01068048412462, 1e-6);
+    assertErr(bbox2.max.y,  39.00901728774289, 1e-6);
 }
 
 TEST_F(CheapRulerTest, insideBBox) {
