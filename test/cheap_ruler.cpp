@@ -60,6 +60,13 @@ TEST_F(CheapRulerTest, destination) {
 }
 
 TEST_F(CheapRulerTest, lineDistance) {
+    {
+        cr::line_string emptyLine {};
+        auto expected = 0.0;
+        auto actual = ruler.lineDistance(emptyLine);
+        assertErr(expected, actual, 0.0);
+    }
+
     for (unsigned i = 0; i < lines.size(); ++i) {
         auto expected = turf_lineDistance[i];
         auto actual = ruler.lineDistance(lines[i]);
@@ -88,6 +95,16 @@ TEST_F(CheapRulerTest, area) {
 }
 
 TEST_F(CheapRulerTest, along) {
+    {
+        cr::point emptyPoint {};
+        cr::line_string emptyLine {};
+        auto expected = emptyPoint;
+        auto actual = ruler.along(emptyLine, 0.0);
+
+        assertErr(expected.x, actual.x, 0.0);
+        assertErr(expected.y, actual.y, 0.0);
+    }
+
     for (unsigned i = 0; i < lines.size(); ++i) {
         auto expected = turf_along[i];
         auto actual = ruler.along(lines[i], turf_along_dist[i]);
@@ -132,6 +149,13 @@ TEST_F(CheapRulerTest, lineSlice) {
 }
 
 TEST_F(CheapRulerTest, lineSliceAlong) {
+    {
+        cr::line_string emptyLine {};
+        auto expected = ruler.lineDistance(emptyLine);
+        auto actual = ruler.lineDistance(ruler.lineSliceAlong(0.0, 0.0, emptyLine));
+        assertErr(expected, actual, 0.0);
+    }
+
     for (unsigned i = 0; i < lines.size(); ++i) {
         if (i == 46) {
             // skip due to Turf bug https://github.com/Turfjs/turf/issues/351
