@@ -93,15 +93,17 @@ public:
         return CheapRuler(latitude);
     }
 
+    double squareDistance(point a, point b) {
+        auto dx = longDiff(a.x, b.x) * kx;
+        auto dy = (a.y - b.y) * ky;
+        return dx * dx + dy * dy;
+    }
+
     //
     // Given two points of the form [x = longitude, y = latitude], returns the distance.
     //
     double distance(point a, point b) {
-        auto dx = longDiff(a.x, b.x) * kx;
-        auto dy = (a.y - b.y) * ky;
-
-        // Equivalent to (but faster than) std::hypot(dx, dy)
-        return std::sqrt(dx * dx + dy * dy);
+        return std::sqrt(squareDistance(a, b));
     }
 
     //
@@ -224,10 +226,7 @@ public:
                 }
             }
 
-            dx = longDiff(p.x, x) * kx;
-            dy = (p.y - y) * ky;
-
-            auto sqDist = dx * dx + dy * dy;
+            auto sqDist = squareDistance(p, {x, y});
 
             if (sqDist < minDist) {
                 minDist = sqDist;
