@@ -125,6 +125,10 @@ public:
     double lineDistance(const line_string& points) {
         double total = 0.;
 
+        if (points.empty()) {
+            return total;
+        }
+
         for (unsigned i = 0; i < points.size() - 1; ++i) {
             total += distance(points[i], points[i + 1]);
         }
@@ -157,6 +161,10 @@ public:
     point along(const line_string& line, double dist) {
         double sum = 0.;
 
+        if (line.empty()) {
+            return {};
+        }
+
         if (dist <= 0.) {
             return line[0];
         }
@@ -184,6 +192,10 @@ public:
     std::tuple<point, unsigned, double> pointOnLine(const line_string& line, point p) {
         double minDist = std::numeric_limits<double>::infinity();
         double minX = 0., minY = 0., minI = 0., minT = 0.;
+
+        if (line.empty()) {
+            return std::make_tuple(point(), 0., 0.);
+        }
 
         for (unsigned i = 0; i < line.size() - 1; ++i) {
             auto t = 0.;
@@ -268,6 +280,10 @@ public:
     line_string lineSliceAlong(double start, double stop, const line_string& line) {
         double sum = 0.;
         line_string slice;
+
+        if (line.empty()) {
+            return slice;
+        }
 
         for (unsigned i = 0; i < line.size() - 1; ++i) {
             auto p0 = line[i];
