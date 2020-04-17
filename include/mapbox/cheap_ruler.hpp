@@ -22,6 +22,14 @@ using point             = geometry::point<double>;
 using polygon           = geometry::polygon<double>;
 
 class CheapRuler {
+
+    // Values that define WGS84 ellipsoid model of the Earth
+    static constexpr double RE = 6378.137; // equatorial radius
+    static constexpr double FE = 1.0 / 298.257223563; // flattening
+
+    static constexpr double E2 = FE * (2 - FE);
+    static constexpr double RAD = M_PI / 180.0;
+
 public:
     enum Unit {
         Kilometers,
@@ -66,36 +74,21 @@ public:
             break;
         }
 
-        // Here are the parameters (major radius in km and flattening) for the
-        // Clarke 1866 ellipsoid which were used to obtain the expansion
-        // parameters used in the FCC formula.
-        // These should be switched to the WGS84 parameters soon!
-        // double a = 6378.137, f = 1/298.257223563;
-        double a = 6378.2064, f = (a - 6356.5838) / a;
+        // Curvature formulas from https://en.wikipedia.org/wiki/Earth_radius#Meridional
+        double mul = RAD * RE * m;
+        double coslat = std::cos(latitude * RAD);
+        double w2 = 1 / (1 - E2 * (1 - coslat * coslat));
+        double w = std::sqrt(w2);
 
-        auto mul = m * (M_PI / 180) * a;
-        auto cos = std::cos(latitude * M_PI / 180);
-        auto den2 = (1-f) * (1-f) + f * (2-f) * cos * cos;
-        auto den = sqrt(den2);
-
-        // multipliers for converting longitude and latitude
-        // degrees into distance
-        //   kx = pi/180 * N * cos(phi)
-        //   ky = pi/180 * M
-        // where phi = latitude and from
-        // https://en.wikipedia.org/wiki/Earth_radius#Principal_sections
-        //   N = normal radius of curvature
-        //     = a^2/((a*cos(phi))^2 + (b*sin(phi))^2)^(1/2)
-        //   M = meridional radius of curvature
-        //     = (a*b)^2/((a*cos(phi))^2 + (b*sin(phi))^2)^(3/2)
-        kx = mul * cos / den;
-        ky = mul * (1-f) * (1-f) / (den * den2);
+        // multipliers for converting longitude and latitude degrees into distance
+        kx = mul * w * coslat;        // based on normal radius of curvature
+        ky = mul * w * w2 * (1 - E2); // based on meridonal radius of curvature
     }
 
     static CheapRuler fromTile(uint32_t y, uint32_t z) {
         assert(z < 32);
         double n = M_PI * (1. - 2. * (y + 0.5) / double(uint32_t(1) << z));
-        double latitude = std::atan(std::sinh(n)) * 180. / M_PI;
+        double latitude = std::atan(std::sinh(n)) / RAD;
 
         return CheapRuler(latitude);
     }
@@ -118,14 +111,14 @@ public:
         auto dx = longDiff(b.x, a.x) * kx;
         auto dy = (b.y - a.y) * ky;
 
-        return std::atan2(dx, dy) * 180. / M_PI;
+        return std::atan2(dx, dy) / RAD;
     }
 
     //
     // Returns a new point given distance and bearing from the starting point.
     //
     point destination(point origin, double dist, double bearing_) {
-        auto a = bearing_ * M_PI / 180.;
+        auto a = bearing_ * RAD;
 
         return offset(origin, std::sin(a) * dist, std::cos(a) * dist);
     }
