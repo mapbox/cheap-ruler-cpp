@@ -143,12 +143,8 @@ public:
     double lineDistance(const line_string& points) {
         double total = 0.;
 
-        if (points.empty()) {
-            return total;
-        }
-
-        for (unsigned i = 0; i < points.size() - 1; ++i) {
-            total += distance(points[i], points[i + 1]);
+        for (size_t i = 1; i < points.size(); ++i) {
+            total += distance(points[i - 1], points[i]);
         }
 
         return total;
@@ -299,13 +295,9 @@ public:
         double sum = 0.;
         line_string slice;
 
-        if (line.empty()) {
-            return slice;
-        }
-
-        for (unsigned i = 0; i < line.size() - 1; ++i) {
-            auto p0 = line[i];
-            auto p1 = line[i + 1];
+        for (size_t i = 1; i < line.size(); ++i) {
+            auto p0 = line[i - 1];
+            auto p1 = line[i];
             auto d = distance(p0, p1);
 
             sum += d;
