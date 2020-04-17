@@ -1,6 +1,8 @@
 #pragma once
 
-#include <mapbox/geometry.hpp>
+#include <mapbox/geometry/box.hpp>
+#include <mapbox/geometry/multi_line_string.hpp>
+#include <mapbox/geometry/polygon.hpp>
 
 #include <cmath>
 #include <cstdint>
