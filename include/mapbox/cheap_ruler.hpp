@@ -4,6 +4,7 @@
 #include <mapbox/geometry/multi_line_string.hpp>
 #include <mapbox/geometry/polygon.hpp>
 
+#include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -78,7 +79,8 @@ public:
     }
 
     static CheapRuler fromTile(uint32_t y, uint32_t z) {
-        double n = M_PI * (1. - 2. * (y + 0.5) / std::pow(2., z));
+        assert(z < 32);
+        double n = M_PI * (1. - 2. * (y + 0.5) / double(uint32_t(1) << z));
         double latitude = std::atan(0.5 * (std::exp(n) - std::exp(-n))) * 180. / M_PI;
 
         return CheapRuler(latitude);
