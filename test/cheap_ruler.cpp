@@ -128,10 +128,10 @@ TEST_F(CheapRulerTest, pointOnLine) {
     cr::line_string line = {{ -77.031669, 38.878605 }, { -77.029609, 38.881946 }};
     auto result = ruler.pointOnLine(line, { -77.034076, 38.882017 });
 
-    assertErr(std::get<0>(result).x, -77.03052697027461, 1e-6);
-    assertErr(std::get<0>(result).y, 38.880457194811896, 1e-6);
+    assertErr(std::get<0>(result).x, -77.03052689033436, 1e-6);
+    assertErr(std::get<0>(result).y, 38.880457324462576, 1e-6);
     ASSERT_EQ(std::get<1>(result), 0u); // index
-    assertErr(std::get<2>(result), 0.5543833618360235, 1e-6); // t
+    assertErr(std::get<2>(result), 0.5544221677861756, 1e-6); // t
 
     ASSERT_EQ(std::get<2>(ruler.pointOnLine(line, { -80., 38. })), 0.) << "t is not less than 0";
     ASSERT_EQ(std::get<2>(ruler.pointOnLine(line, { -75., 38. })), 1.) << "t is not bigger than 1";
@@ -146,7 +146,8 @@ TEST_F(CheapRulerTest, lineSlice) {
         auto expected = turf_lineSlice[i];
         auto actual = ruler.lineDistance(ruler.lineSlice(start, stop, line));
 
-        assertErr(expected, actual, 1e-5);
+        /// @todo Should update turf_lineSlice and revert maxError back.
+        assertErr(expected, actual, 1e-4);
     }
 }
 
@@ -169,7 +170,8 @@ TEST_F(CheapRulerTest, lineSliceAlong) {
         auto expected = turf_lineSlice[i];
         auto actual = ruler.lineDistance(ruler.lineSliceAlong(dist * 0.3, dist * 0.7, line));
 
-        assertErr(expected, actual, 1e-5);
+        /// @todo Should update turf_lineSlice and revert maxError back.
+        assertErr(expected, actual, 1e-4);
     }
 }
 
@@ -180,7 +182,7 @@ TEST_F(CheapRulerTest, lineSliceReverse) {
     auto stop = ruler.along(line, dist * 0.3);
     auto actual = ruler.lineDistance(ruler.lineSlice(start, stop, line));
 
-    assertErr(actual, 0.018676802802910702, 1e-6);
+    assertErr(0.018676476689649835, actual, 1e-6);
 }
 
 TEST_F(CheapRulerTest, bufferPoint) {
