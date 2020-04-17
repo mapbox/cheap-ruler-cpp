@@ -39,6 +39,13 @@ TEST_F(CheapRulerTest, distanceInMiles) {
     assertErr(d / d2, 1.609344, 1e-12);
 }
 
+TEST_F(CheapRulerTest, distanceFiji) {
+    cr::CheapRuler ruler(-16.7);
+    auto const d = ruler.distance({ -179.9854832, -16.7813260 }, { 179.8430685, -16.6728974 });
+
+    assertErr(d, 21.8710, 1.0E-3);
+}
+
 TEST_F(CheapRulerTest, bearing) {
     for (unsigned i = 0; i < points.size() - 1; ++i) {
         auto expected = turf_bearing[i];

@@ -86,21 +86,25 @@ public:
         return CheapRuler(latitude);
     }
 
+    double squareDistance(point a, point b) const {
+        auto dx = bounds(a.x - b.x) * kx;
+        auto dy = (a.y - b.y) * ky;
+
+        return dx * dx + dy * dy;
+    }
+
     //
     // Given two points of the form [x = longitude, y = latitude], returns the distance.
     //
-    double distance(point a, point b) {
-        auto dx = (a.x - b.x) * kx;
-        auto dy = (a.y - b.y) * ky;
-
-        return std::sqrt(dx * dx + dy * dy);
+    double distance(point a, point b) const {
+        return std::sqrt(squareDistance(a, b));
     }
 
     //
     // Returns the bearing between two points in angles.
     //
-    double bearing(point a, point b) {
-        auto dx = (b.x - a.x) * kx;
+    double bearing(point a, point b) const {
+        auto dx = bounds(b.x - a.x) * kx;
         auto dy = (b.y - a.y) * ky;
 
         if (!dx && !dy) {
@@ -109,9 +113,8 @@ public:
 
         auto value = std::atan2(dx, dy) * 180. / M_PI;
 
-        if (value > 180.) {
-            value -= 360.;
-        }
+        // Actually, atan2 should be in [-pi, pi], but anyway (180 / M_PI and calculation errors).
+        value = bounds(value);
 
         return value;
     }
@@ -119,7 +122,7 @@ public:
     //
     // Returns a new point given distance and bearing from the starting point.
     //
-    point destination(point origin, double dist, double bearing_) {
+    point destination(point origin, double dist, double bearing_) const {
         auto a = bearing_ * M_PI / 180.;
 
         return offset(origin, std::sin(a) * dist, std::cos(a) * dist);
@@ -128,14 +131,14 @@ public:
     //
     // Returns a new point given easting and northing offsets from the starting point.
     //
-    point offset(point origin, double dx, double dy) {
+    point offset(point origin, double dx, double dy) const {
         return point(origin.x + dx / kx, origin.y + dy / ky);
     }
 
     //
     // Given a line (an array of points), returns the total line distance.
     //
-    double lineDistance(const line_string& points) {
+    double lineDistance(const line_string& points) const {
         double total = 0.;
 
         for (size_t i = 1; i < points.size(); ++i) {
@@ -149,14 +152,14 @@ public:
     // Given a polygon (an array of rings, where each ring is an array of points),
     // returns the area.
     //
-    double area(polygon poly) {
+    double area(polygon poly) const {
         double sum = 0.;
 
         for (unsigned i = 0; i < poly.size(); ++i) {
             auto& ring = poly[i];
 
             for (unsigned j = 0, len = ring.size(), k = len - 1; j < len; k = j++) {
-                sum += (ring[j].x - ring[k].x) * (ring[j].y + ring[k].y) * (i ? -1. : 1.);
+                sum += bounds(ring[j].x - ring[k].x) * (ring[j].y + ring[k].y) * (i ? -1. : 1.);
             }
         }
 
@@ -166,7 +169,7 @@ public:
     //
     // Returns the point at a specified distance along the line.
     //
-    point along(const line_string& line, double dist) {
+    point along(const line_string& line, double dist) const {
         double sum = 0.;
 
         if (line.empty()) {
@@ -197,7 +200,7 @@ public:
     // from the given point, index is the start index of the segment with the closest point,
     // and t is a parameter from 0 to 1 that indicates where the closest point is on that segment.
     //
-    std::tuple<point, unsigned, double> pointOnLine(const line_string& line, point p) {
+    std::tuple<point, unsigned, double> pointOnLine(const line_string& line, point p) const {
         double minDist = std::numeric_limits<double>::infinity();
         double minX = 0., minY = 0., minI = 0., minT = 0.;
 
@@ -209,11 +212,11 @@ public:
             auto t = 0.;
             auto x = line[i].x;
             auto y = line[i].y;
-            auto dx = (line[i + 1].x - x) * kx;
+            auto dx = bounds(line[i + 1].x - x) * kx;
             auto dy = (line[i + 1].y - y) * ky;
 
             if (dx != 0. || dy != 0.) {
-                t = ((p.x - x) * kx * dx + (p.y - y) * ky * dy) / (dx * dx + dy * dy);
+                t = (bounds(p.x - x) * kx * dx + (p.y - y) * ky * dy) / (dx * dx + dy * dy);
 
                 if (t > 1) {
                     x = line[i + 1].x;
@@ -225,10 +228,7 @@ public:
                 }
             }
 
-            dx = (p.x - x) * kx;
-            dy = (p.y - y) * ky;
-
-            auto sqDist = dx * dx + dy * dy;
+            auto sqDist = squareDistance(p, {x, y});
 
             if (sqDist < minDist) {
                 minDist = sqDist;
@@ -247,7 +247,7 @@ public:
     // Returns a part of the given line between the start and the stop points (or their closest
     // points on the line).
     //
-    line_string lineSlice(point start, point stop, const line_string& line) {
+    line_string lineSlice(point start, point stop, const line_string& line) const {
         auto getPoint = [](auto tuple) { return std::get<0>(tuple); };
         auto getIndex = [](auto tuple) { return std::get<1>(tuple); };
         auto getT     = [](auto tuple) { return std::get<2>(tuple); };
@@ -285,7 +285,7 @@ public:
     // Returns a part of the given line between the start and the stop points
     // indicated by distance along the line.
     //
-    line_string lineSliceAlong(double start, double stop, const line_string& line) {
+    line_string lineSliceAlong(double start, double stop, const line_string& line) const {
         double sum = 0.;
         line_string slice;
 
@@ -317,7 +317,7 @@ public:
     // Given a point, returns a bounding box object ([w, s, e, n])
     // created from the given point buffered by a given distance.
     //
-    box bufferPoint(point p, double buffer) {
+    box bufferPoint(point p, double buffer) const {
         auto v = buffer / ky;
         auto h = buffer / kx;
 
@@ -330,7 +330,7 @@ public:
     //
     // Given a bounding box, returns the box buffered by a given distance.
     //
-    box bufferBBox(box bbox, double buffer) {
+    box bufferBBox(box bbox, double buffer) const {
         auto v = buffer / ky;
         auto h = buffer / kx;
 
@@ -343,7 +343,7 @@ public:
     //
     // Returns true if the given point is inside in the given bounding box, otherwise false.
     //
-    bool insideBBox(point p, box bbox) {
+    static bool insideBBox(point p, box bbox) {
         return p.x >= bbox.min.x &&
                p.x <= bbox.max.x &&
                p.y >= bbox.min.y &&
@@ -351,13 +351,22 @@ public:
     }
 
     static point interpolate(point a, point b, double t) {
-        double dx = b.x - a.x;
+        double dx = bounds(b.x - a.x);
         double dy = b.y - a.y;
 
         return point(a.x + dx * t, a.y + dy * t);
     }
 
 private:
+    static double bounds(double lon)
+    {
+        if (lon < -180.0)
+            return 360.0 + lon;
+        else if (lon > 180.0)
+            return lon - 360.0;
+        return lon;
+    }
+
     double ky;
     double kx;
 };
