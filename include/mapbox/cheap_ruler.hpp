@@ -63,16 +63,30 @@ public:
             break;
         }
 
-        auto cos = std::cos(latitude * M_PI / 180.);
-        auto cos2 = 2. * cos * cos - 1.;
-        auto cos3 = 2. * cos * cos2 - cos;
-        auto cos4 = 2. * cos * cos3 - cos2;
-        auto cos5 = 2. * cos * cos4 - cos3;
+        // Here are the parameters (major radius in km and flattening) for the
+        // Clarke 1866 ellipsoid which were used to obtain the expansion
+        // parameters used in the FCC formula.
+        // These should be switched to the WGS84 parameters soon!
+        // double a = 6378.137, f = 1/298.257223563;
+        double a = 6378.2064, f = (a - 6356.5838) / a;
+
+        auto mul = m * (M_PI / 180) * a;
+        auto cos = std::cos(latitude * M_PI / 180);
+        auto den2 = (1-f) * (1-f) + f * (2-f) * cos * cos;
+        auto den = sqrt(den2);
 
         // multipliers for converting longitude and latitude
-        // degrees into distance (http://1.usa.gov/1Wb1bv7)
-        kx = m * (111.41513 * cos - 0.09455 * cos3 + 0.00012 * cos5);
-        ky = m * (111.13209 - 0.56605 * cos2 + 0.0012 * cos4);
+        // degrees into distance
+        //   kx = pi/180 * N * cos(phi)
+        //   ky = pi/180 * M
+        // where phi = latitude and from
+        // https://en.wikipedia.org/wiki/Earth_radius#Principal_sections
+        //   N = normal radius of curvature
+        //     = a^2/((a*cos(phi))^2 + (b*sin(phi))^2)^(1/2)
+        //   M = meridional radius of curvature
+        //     = (a*b)^2/((a*cos(phi))^2 + (b*sin(phi))^2)^(3/2)
+        kx = mul * cos / den;
+        ky = mul * (1-f) * (1-f) / (den * den2);
     }
 
     static CheapRuler fromTile(uint32_t y, uint32_t z) {
