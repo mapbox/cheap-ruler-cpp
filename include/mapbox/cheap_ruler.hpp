@@ -77,7 +77,7 @@ public:
 
     static CheapRuler fromTile(uint32_t y, uint32_t z) {
         double n = M_PI * (1. - 2. * (y + 0.5) / std::pow(2., z));
-        double latitude = std::atan(0.5 * (std::exp(n) - std::exp(-n))) * 180. / M_PI;
+        double latitude = std::atan(std::sinh(n)) * 180. / M_PI;
 
         return CheapRuler(latitude);
     }
@@ -86,9 +86,10 @@ public:
     // Given two points of the form [x = longitude, y = latitude], returns the distance.
     //
     double distance(point a, point b) {
-        auto dx = (a.x - b.x) * kx;
+        auto dx = longDiff(a.x, b.x) * kx;
         auto dy = (a.y - b.y) * ky;
 
+        // Equivalent to (but faster than) std::hypot(dx, dy)
         return std::sqrt(dx * dx + dy * dy);
     }
 
@@ -96,20 +97,10 @@ public:
     // Returns the bearing between two points in angles.
     //
     double bearing(point a, point b) {
-        auto dx = (b.x - a.x) * kx;
+        auto dx = longDiff(b.x, a.x) * kx;
         auto dy = (b.y - a.y) * ky;
 
-        if (!dx && !dy) {
-            return 0.;
-        }
-
-        auto value = std::atan2(dx, dy) * 180. / M_PI;
-
-        if (value > 180.) {
-            value -= 360.;
-        }
-
-        return value;
+        return std::atan2(dx, dy) * 180. / M_PI;
     }
 
     //
@@ -156,7 +147,8 @@ public:
             auto& ring = poly[i];
 
             for (unsigned j = 0, len = ring.size(), k = len - 1; j < len; k = j++) {
-                sum += (ring[j].x - ring[k].x) * (ring[j].y + ring[k].y) * (i ? -1. : 1.);
+                sum += longDiff(ring[j].x, ring[k].x) *
+                  (ring[j].y + ring[k].y) * (i ? -1. : 1.);
             }
         }
 
@@ -209,12 +201,12 @@ public:
             auto t = 0.;
             auto x = line[i].x;
             auto y = line[i].y;
-            auto dx = (line[i + 1].x - x) * kx;
+            auto dx = longDiff(line[i + 1].x, x) * kx;
             auto dy = (line[i + 1].y - y) * ky;
 
             if (dx != 0. || dy != 0.) {
-                t = ((p.x - x) * kx * dx + (p.y - y) * ky * dy) / (dx * dx + dy * dy);
-
+                t = (longDiff(p.x, x) * kx * dx +
+                     (p.y - y) * ky * dy) / (dx * dx + dy * dy);
                 if (t > 1) {
                     x = line[i + 1].x;
                     y = line[i + 1].y;
@@ -225,7 +217,7 @@ public:
                 }
             }
 
-            dx = (p.x - x) * kx;
+            dx = longDiff(p.x, x) * kx;
             dy = (p.y - y) * ky;
 
             auto sqDist = dx * dx + dy * dy;
@@ -348,14 +340,14 @@ public:
     // Returns true if the given point is inside in the given bounding box, otherwise false.
     //
     bool insideBBox(point p, box bbox) {
-        return p.x >= bbox.min.x &&
-               p.x <= bbox.max.x &&
-               p.y >= bbox.min.y &&
-               p.y <= bbox.max.y;
+        return p.y >= bbox.min.y &&
+               p.y <= bbox.max.y &&
+               longDiff(p.x, bbox.min.x) >= 0 &&
+               longDiff(p.x, bbox.max.x) <= 0;
     }
 
     static point interpolate(point a, point b, double t) {
-        double dx = b.x - a.x;
+        double dx = longDiff(b.x, a.x);
         double dy = b.y - a.y;
 
         return point(a.x + dx * t, a.y + dy * t);
@@ -364,6 +356,9 @@ public:
 private:
     double ky;
     double kx;
+    static double longDiff(double a, double b) {
+        return std::remainder(a - b, 360);
+    }
 };
 
 } // namespace cheap_ruler
