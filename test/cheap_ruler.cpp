@@ -137,6 +137,14 @@ TEST_F(CheapRulerTest, pointOnLine) {
     ASSERT_EQ(std::get<2>(ruler.pointOnLine(line, { -75., 38. })), 1.) << "t is not bigger than 1";
 }
 
+TEST_F(CheapRulerTest, pointToSegmentDistance) {
+    cr::point p{ -77.034076, 38.882017 };
+    cr::point p0{ -77.031669, 38.878605 };
+    cr::point p1{ -77.029609, 38.881946 };
+    const auto distance = ruler.pointToSegmentDistance(p, p0, p1);
+    assertErr(0.37461484020420416, distance, 1e-6);
+}
+
 TEST_F(CheapRulerTest, lineSlice) {
     for (unsigned i = 0; i < lines.size(); ++i) {
         auto line = lines[i];

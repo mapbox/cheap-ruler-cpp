@@ -194,6 +194,29 @@ public:
     }
 
     //
+    // Returns the distance from a point `p` to a line segment `a` to `b`.
+    //
+  double pointToSegmentDistance(const point& p, const point& a, const point& b) const {
+        auto t = 0.0;
+        auto x = a.x;
+        auto y = a.y;
+        auto dx = longDiff(b.x, x) * kx;
+        auto dy = (b.y - y) * ky;
+
+        if (dx != 0.0 || dy != 0.0) {
+            t = (longDiff(p.x, x) * kx * dx + (p.y - y) * ky * dy) / (dx * dx + dy * dy);
+            if (t > 1.0) {
+                x = b.x;
+                y = b.y;
+            } else if (t > 0.0) {
+                x += (dx / kx) * t;
+                y += (dy / ky) * t;
+            }
+        }
+        return distance(p, { x, y });
+    }
+
+    //
     // Returns a tuple of the form <point, index, t> where point is closest point on the line
     // from the given point, index is the start index of the segment with the closest point,
     // and t is a parameter from 0 to 1 that indicates where the closest point is on that segment.
